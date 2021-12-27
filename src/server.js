@@ -18,17 +18,19 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+//브라우저 종류 구분
+const sockets = [];
+
 // 서버 안에서 http 와 wss 서버간의 연결
 wss.on('connection', (socket) => {
-  //wss 서버가 ㅇ니라, socket에 있는 메서드 사용 가능하다.
+  sockets.push(socket);
   console.log('..Connect to the Browser');
   socket.on('close', () => {
     console.log('..DisConnect from the Browser');
   });
   socket.on('message', (message) => {
-    console.log(`This Is Front-Message : ${message}`);
+    sockets.forEach((aSocket) => aSocket.send(message.toString()));
   });
-  socket.send('Hello from Server to the Browser!!');
 });
 
 server.listen(3000, handleListen);
