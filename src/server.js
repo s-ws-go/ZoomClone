@@ -24,12 +24,20 @@ const sockets = [];
 // 서버 안에서 http 와 wss 서버간의 연결
 wss.on('connection', (socket) => {
   sockets.push(socket);
+  socket['nickname'] = 'Anonymous';
   console.log('..Connect to the Browser');
   socket.on('close', () => {
     console.log('..DisConnect from the Browser');
   });
-  socket.on('message', (message) => {
-    sockets.forEach((aSocket) => aSocket.send(message.toString()));
+  socket.on('message', (msg) => {
+    const message = JSON.parse(msg.toString());
+    if (message.type === 'new_message') {
+      sockets.forEach((aSocket) => {
+        aSocket.send(`${socket.nickname} : ${message.payload}`);
+      });
+    } else if (message.type === 'nickname') {
+      socket['nickname'] = message.payload;
+    }
   });
 });
 
@@ -39,3 +47,6 @@ server.listen(3000, handleListen);
 // submit 때 보내줄 message가 채팅메세지인지 닉네임인지 구분되지 않은채로 프론트 -> 서버로 전달된다
 // type와 payload를 각각 nickname, message (타입) 설정하고 payload에 값을 대응하면 되는데,
 // send 메서드는 string만을 보낼 수 있다. --> Json으로 바꿔서 전송토록 해 보자.
+
+// socket은 객체이기 떄문에 데이터를 저장할 수 있다.
+// 이를 이용해 닉네임 정보 저장하여 프론트에 쏴줌
