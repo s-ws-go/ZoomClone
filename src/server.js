@@ -1,8 +1,8 @@
 //여기는 백엔드
 
 import http from 'http';
-import WebSocket from 'ws';
-
+// import WebSocket from 'ws';
+import SocketIO from 'socket.io';
 import express from 'express';
 
 const app = express();
@@ -16,30 +16,41 @@ app.get('/*', (req, res) => res.redirect('/'));
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wsServer = SocketIO(server);
 
-//브라우저 종류 구분
-const sockets = [];
-
-// 서버 안에서 http 와 wss 서버간의 연결
-wss.on('connection', (socket) => {
-  sockets.push(socket);
-  socket['nickname'] = 'Anonymous';
-  console.log('..Connect to the Browser');
-  socket.on('close', () => {
-    console.log('..DisConnect from the Browser');
-  });
-  socket.on('message', (msg) => {
-    const message = JSON.parse(msg.toString());
-    if (message.type === 'new_message') {
-      sockets.forEach((aSocket) => {
-        aSocket.send(`${socket.nickname} : ${message.payload}`);
-      });
-    } else if (message.type === 'nickname') {
-      socket['nickname'] = message.payload;
-    }
+wsServer.on('connection', (socket) => {
+  socket.on('enter_room', (a, b, c, d, done) => {
+    console.log(a, b, c, d);
+    setTimeout(() => {
+      done();
+    }, 3000);
   });
 });
+
+// const wss = new WebSocket.Server({ server });
+
+// //브라우저 종류 구분
+// const sockets = [];
+
+// // 서버 안에서 http 와 wss 서버간의 연결
+// wss.on('connection', (socket) => {
+//   sockets.push(socket);
+//   socket['nickname'] = 'Anonymous';
+//   console.log('..Connect to the Browser');
+//   socket.on('close', () => {
+//     console.log('..DisConnect from the Browser');
+//   });
+//   socket.on('message', (msg) => {
+//     const message = JSON.parse(msg.toString());
+//     if (message.type === 'new_message') {
+//       sockets.forEach((aSocket) => {
+//         aSocket.send(`${socket.nickname} : ${message.payload}`);
+//       });
+//     } else if (message.type === 'nickname') {
+//       socket['nickname'] = message.payload;
+//     }
+//   });
+// });
 
 server.listen(3000, handleListen);
 
